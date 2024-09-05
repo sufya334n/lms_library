@@ -12,18 +12,18 @@ enum SideBarItem {
   dashboard(
       value: 'Dashboard', iconData: Icons.dashboard, body: DashboardPage()),
   // ignore: constant_identifier_names
-  IssueBook(value: 'IssuePAge', iconData: Icons.business, body: IssuePage()),
+  IssueBook(value: 'IssuePAge', iconData: Icons.book, body: IssuePage()),
   // ignore: constant_identifier_names
   Return_Book(
-      value: 'ReturnBook', iconData: Icons.group, body: ReturnBookPage()),
+      value: 'ReturnBook', iconData: Icons.restore, body: ReturnBookPage()),
   // ignore: constant_identifier_names
-  Record_Book(value: 'RecordBook', iconData: Icons.group, body: RecordPage()),
+  Record_Book(value: 'RecordBook', iconData: Icons.info, body: RecordPage()),
   // ignore: constant_identifier_names
   //DetailBook(value: 'DetailBook', iconData: Icons.group, body: Bookdetail()),
   // ignore: constant_identifier_names
   Addbook(
-      value: 'Search Book', iconData: Icons.campaign, body: ManageBookPage()),
-  settings(value: 'Add Book', iconData: Icons.settings, body: AddBook());
+      value: 'Search Book', iconData: Icons.search, body: ManageBookPage()),
+  settings(value: 'Add Book', iconData: Icons.add, body: AddBook());
 
   const SideBarItem(
       {required this.value, required this.iconData, required this.body});

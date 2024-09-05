@@ -30,13 +30,13 @@ class MyApp extends StatelessWidget {
 enum DashboardItem {
   issueBook(value: 'Issue Book', iconData: Icons.book, body: IssuePage()),
   returnBook(
-      value: 'Return Book', iconData: Icons.business, body: ReturnBookPage()),
+      value: 'Return Book', iconData: Icons.restore, body: ReturnBookPage()),
   recordBook(
-      value: 'Record Book', iconData: Icons.library_books, body: RecordPage()),
+      value: 'Record Book', iconData: Icons.info, body: RecordPage()),
   //detailBook(
   //  value: 'Book Detail', iconData: Icons.book_online, body: Bookdetail()),
-  addBook(value: 'Search Books', iconData: Icons.add, body: ManageBookPage()),
-  settings(value: 'Add Books', iconData: Icons.settings, body: AddBook());
+  addBook(value: 'Search Books', iconData: Icons.search, body: ManageBookPage()),
+  settings(value: 'Add Books', iconData: Icons.add, body: AddBook());
 
   const DashboardItem(
       {required this.value, required this.iconData, required this.body});
@@ -62,7 +62,7 @@ class DashboardPage extends ConsumerWidget {
             flex: 1,
             child: GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 6, // Number of squares per row
+                crossAxisCount: 5, // Number of squares per row
                 childAspectRatio: 1, // Aspect ratio of the squares
                 crossAxisSpacing: 15,
                 mainAxisSpacing: 15,
@@ -89,30 +89,30 @@ class DashboardPage extends ConsumerWidget {
               },
             ),
           ),
-          Expanded(
-            flex: 1,
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 11, // Number of squares per row
-                childAspectRatio: 1, // Aspect ratio of the squares
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-              ),
-              padding: const EdgeInsets.only(
-                  right: 50, top: 50, left: 50, bottom: 50),
-
-              itemCount:
-                  45, // Placeholder count for images, replace with actual count
-              itemBuilder: (context, index) {
-                // Replace with image fetching logic
-                return HoverContainer(
-                  iconData: Icons.image,
-                  label: 'Image $index',
-                  backgroundColor: Colors.grey[300]!,
-                );
-              },
-            ),
-          ),
+          // Expanded(
+          //   flex: 1,
+          //   child: GridView.builder(
+          //     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          //       crossAxisCount: 11, // Number of squares per row
+          //       childAspectRatio: 1, // Aspect ratio of the squares
+          //       crossAxisSpacing: 10,
+          //       mainAxisSpacing: 10,
+          //     ),
+          //     padding: const EdgeInsets.only(
+          //         right: 50, top: 50, left: 50, bottom: 50),
+          //
+          //     itemCount:
+          //         45, // Placeholder count for images, replace with actual count
+          //     itemBuilder: (context, index) {
+          //       // Replace with image fetching logic
+          //       return HoverContainer(
+          //         iconData: Icons.image,
+          //         label: 'Image $index',
+          //         backgroundColor: Colors.grey[300]!,
+          //       );
+          //     },
+          //   ),
+          // ),
         ],
       ),
     );

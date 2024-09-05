@@ -42,20 +42,38 @@ class ManageBookPage extends StatelessWidget {
                 Container(
                   width: 200,
                   height: 200,
-                  color: Colors.grey[300],
+                  color: Colors.white10,
                   child:
-                      Image.asset('images/logolibrary.png', fit: BoxFit.cover),
+                      Image.asset('images/search.png', fit: BoxFit.cover),
                 ),
 
                 const SizedBox(height: 20),
                 // Buttons below the image
                 ElevatedButton(
                   onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple.shade900,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    textStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   child: const Text('Add Book'),
                 ),
                 const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple.shade900,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    textStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   child: const Text('Update Book'),
                 ),
               ],
@@ -155,11 +173,11 @@ class ManageBookPage extends StatelessWidget {
                                       MaterialPageRoute(
                                           builder: (context) =>
                                               const AnotherScreen(
-                                                imagePath: 'images/book1.png',
+                                                imagePath: 'images/logolibrary.png',
                                               )),
                                     );
                                   },
-                                  child: Image.asset('images/book1.png',
+                                  child: Image.asset('images/logolibrary.png',
                                       width: 20, height: 50),
                                 ),
                               ),
@@ -178,11 +196,11 @@ class ManageBookPage extends StatelessWidget {
                                       MaterialPageRoute(
                                           builder: (context) =>
                                               const AnotherScreen(
-                                                imagePath: 'images/book2.png',
+                                                imagePath: 'images/logolibrary.png',
                                               )),
                                     );
                                   },
-                                  child: Image.asset('images/book2.png',
+                                  child: Image.asset('images/logolibrary.png',
                                       width: 50, height: 50),
                                 ),
                               ),
@@ -262,7 +280,7 @@ class AnotherScreen extends StatelessWidget {
                         width: 300,
                         height: 400,
                         color: Colors.grey[300],
-                        child: Image.asset('mnt/data/booktoselect.jpg',
+                        child: Image.asset('images/logolibrary.png',
                             fit: BoxFit.cover),
                       ),
                       const SizedBox(width: 20),
@@ -296,7 +314,7 @@ class AnotherScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const AddtoCart()),
+                              builder: (context) => const AddtoCart(bookTitle: '', author: '', edition: '', quantity: '', description: '',)),
                         );
                       },
                       child: const Text('Add To Cart'),

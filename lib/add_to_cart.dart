@@ -1,5 +1,7 @@
-import 'package:admin_dashboard_app/home_page.dart' show HomePage;
 import 'package:flutter/material.dart';
+import 'package:admin_dashboard_app/home_page.dart' show HomePage;
+import 'package:admin_dashboard_app/cart_manager.dart'; // Import CartManager
+import 'package:admin_dashboard_app/issue_book.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,103 +14,126 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: AddtoCart(),
+      home: AddtoCart(bookTitle: '', author: '', edition: '', quantity: '', description: ''),
     );
   }
 }
 
-class AddtoCart extends StatelessWidget {
-  const AddtoCart({super.key});
+class AddtoCart extends StatefulWidget {
+  final String bookTitle;
+  final String author;
+  final String edition;
+  final String quantity;
+  final String description;
+
+  const AddtoCart({
+    super.key,
+    required this.bookTitle,
+    required this.author,
+    required this.edition,
+    required this.quantity,
+    required this.description,
+  });
+
+  @override
+  _AddtoCartState createState() => _AddtoCartState();
+}
+
+class _AddtoCartState extends State<AddtoCart> {
+  final CartManager cartManager = CartManager(); // Use CartManager
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _addBookToCart() {
+    if ( cartManager.cartItems.length < 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => IssuePage()),
+      );
+        print('add cart.');
+
+    } else if (cartManager.cartItems.length >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You can only add up to 3 books to the cart.')),
+      );
+    }
+  }
+
+  void _removeItem(int index) {
+    setState(() {
+      cartManager.removeBookFromCart(index);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Center(
-          child: Text('Book Cart'),
-        ),
+        title: const Center(child: Text('Book Cart')),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Sidebar with image and buttons
             Column(
               children: [
-                // Clickable Image container
                 GestureDetector(
-                  // onTap: () {
-                  //   // Navigate to another screen when image is clicked
-                  //   Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //         builder: (context) => const AnotherScreen(
-                  //               imagePath: 'images/logolibrary.png',
-                  //             )),
-                  //   );
-                  // },
                   child: Container(
                     width: 200,
                     height: 200,
                     color: Colors.grey[300],
-                    child: Image.asset('images/logolibrary.png',
-                        fit: BoxFit.cover),
+                    child: Image.asset('images/logolibrary.png', fit: BoxFit.cover),
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Buttons below the image
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // Navigate to IssuePage without adding book automatically
+                    _addBookToCart();
+
+                  },
                   child: const Text('Add Book'),
                 ),
                 const SizedBox(height: 10),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // Add your logic here to navigate to Update Book page
+                  },
                   child: const Text('Update Book'),
                 ),
               ],
             ),
             const SizedBox(width: 20),
-            // Vertical divider
             const VerticalDivider(thickness: 4, width: 1),
             const SizedBox(width: 20),
-
-            // Cart and Student Info
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Cart title
                     const Center(
-                      child: Text('Cart',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)),
+                      child: Text('Cart', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 10),
-                    // Cart details
-
                     Expanded(
-                      child: ListView(
-                        children: const [
-                          CartItem(
-                              number: '1',
-                              author: 'Author 1',
-                              title: 'Title 1',
-                              category: 'Category 1'),
-                          CartItem(
-                              number: '2',
-                              author: 'Author 2',
-                              title: 'Title 2',
-                              category: 'Category 2'),
-                          CartItem(
-                              number: '3',
-                              author: 'Author 3',
-                              title: 'Title 3',
-                              category: 'Category 3'),
-                        ],
+                      child: ListView.builder(
+                        itemCount: cartManager.cartItems.length,
+                        itemBuilder: (context, index) {
+                          return CartItem(
+                            number: (index + 1).toString(),
+                            author: cartManager.cartItems[index]['author']!,
+                            title: cartManager.cartItems[index]['title']!,
+                            edition: cartManager.cartItems[index]['edition']!,
+                            quantity: cartManager.cartItems[index]['quantity']!,
+                            description: cartManager.cartItems[index]['description']!,
+                            onDelete: () => _removeItem(index),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -116,8 +141,6 @@ class AddtoCart extends StatelessWidget {
               ),
             ),
             const VerticalDivider(thickness: 4, width: 20),
-            // Student info
-
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -125,13 +148,9 @@ class AddtoCart extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Center(
-                      child: Text('Student info',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)),
+                      child: Text('Student info', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     ),
-                    const SizedBox(
-                      height: 10,
-                    ),
+                    const SizedBox(height: 10),
                     const TextField(
                       decoration: InputDecoration(
                         labelText: 'Name',
@@ -160,17 +179,15 @@ class AddtoCart extends StatelessWidget {
                       alignment: Alignment.bottomCenter,
                       child: ElevatedButton(
                         onPressed: () {
-                          // Navigate to the next screen
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) => const HomePage()),
+                            MaterialPageRoute(builder: (context) => const HomePage()),
                           );
                         },
-                        child: Text('Issue'),
+                        child: const Text('Issue'),
                         style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 15)),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                        ),
                       ),
                     ),
                   ],
@@ -188,14 +205,20 @@ class CartItem extends StatelessWidget {
   final String number;
   final String author;
   final String title;
-  final String category;
+  final String edition;
+  final String quantity;
+  final String description;
+  final VoidCallback onDelete;
 
   const CartItem({
     super.key,
     required this.number,
     required this.author,
     required this.title,
-    required this.category,
+    required this.edition,
+    required this.quantity,
+    required this.description,
+    required this.onDelete,
   });
 
   @override
@@ -207,10 +230,12 @@ class CartItem extends StatelessWidget {
           Expanded(child: Text(number)),
           Expanded(child: Text(author)),
           Expanded(child: Text(title)),
-          Expanded(child: Text(category)),
+          Expanded(child: Text(edition)),
+          Expanded(child: Text(quantity)),
+          Expanded(child: Text(description)),
           IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: () {},
+            onPressed: onDelete,
           ),
         ],
       ),

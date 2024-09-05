@@ -1,4 +1,5 @@
 import 'package:mysql1/mysql1.dart';
+//import 'package:mysql_client/mysql_client.dart';
 
 class Mysql {
   // Note: if you are using terminal base connection than localHost is 127.0.0.1
@@ -6,10 +7,10 @@ class Mysql {
   static String host = '127.0.0.1',
       user = 'root',
       // Note:- I am not using any password in my database
-      // password = "123456789",
+      //password = "M,sufyan",
 
       // Database name that i created inside mySQL (Which should already exited)
-      db = 'librarysystem';
+      db = 'librarysystemfinal';
   // Note:- MySQL sever port
   static int port = 3306;
 
@@ -20,7 +21,7 @@ class Mysql {
       host: host,
       port: port,
       user: user,
-    //   password: password,
+      //password: password,
       db: db,
     );
     return await MySqlConnection.connect(settings);

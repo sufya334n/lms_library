@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:mysql1/mysql1.dart';
+
 
 void main() {
   runApp(const AddBook());
@@ -12,6 +14,7 @@ void main() {
 
 class AddBook extends StatefulWidget {
   const AddBook({Key? key}) : super(key: key);
+
 
   @override
   State<AddBook> createState() => _AddBookState();
@@ -29,27 +32,27 @@ class _AddBookState extends State<AddBook> {
   final book_publishing_year = TextEditingController();
   final book_image = TextEditingController();
   final book_publishing_place = TextEditingController();
-  final book_volume = TextEditingController();
-  final book_quantity = TextEditingController();
-  final book_page = TextEditingController();
-  final book_source = TextEditingController();
-  final book_price = TextEditingController();
-  final book_binding = TextEditingController();
-  final book_shelf = TextEditingController();
+  final book_volume      = TextEditingController();
+  final book_description = TextEditingController();
+  final book_page        = TextEditingController();
+  final book_source      = TextEditingController();
+  final book_price       = TextEditingController();
+  final book_binding     = TextEditingController();
+  final book_shelf       = TextEditingController();
   final book_association_id = TextEditingController();
+  final associationController = TextEditingController();
 
-  var classificationId;
   var bookTitleId;
   var bookAuthorId;
-  var bookedditionid;
-  var bookvolumeid;
-  var book_pageid;
   var book_associationid;
-  var bookshelfid;
 
+
+
+
+
+  // pick image
   File? _image;
   final ImagePicker _picker = ImagePicker();
-
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 
@@ -61,88 +64,291 @@ class _AddBookState extends State<AddBook> {
       }
     });
   }
+
+
+
+  //clear image
   void _clearImage() {
     setState(() {
       _image = null;
     });
   }
-  Future<void> table_classification() async {
-    var conn = await db.getConnection();
-    String sqlQuery = 'INSERT INTO book_classification(Book_Classification_Name, Book_Classification_Number) VALUES (?, ?)';
-    var result = await conn.query(sqlQuery, [classification_name.text, classification_number.text]);
-    classificationId = result.insertId;
-    print("Data added to table_classification with ID: $classificationId");
-  }
-
-  Future<void> table_book_title() async {
-    var conn = await db.getConnection();
-    String sqlQuery = 'INSERT INTO book_title(book_title) VALUES (?)';
-    var result = await conn.query(sqlQuery, [book_title.text]);
-    bookTitleId = result.insertId; // Get the inserted ID
-    print("Added to table_book_title with ID: $bookTitleId");
-  }
-
+//author table for entry
   Future<void> table_book_author() async {
     var conn = await db.getConnection();
-    String sqlQuery = 'INSERT INTO book_author(Book_author_code, Book_author_name, Book_title_id) VALUES (?,?,?)';
-    var result = await conn.query(sqlQuery, [book_author_code.text, book_author_name.text, bookTitleId]);
-    bookAuthorId = result.insertId;
-    print('Added to table_book_author with ID: $bookAuthorId');
+    // Check if the author already exists
+    String checkQuery = 'SELECT author_id FROM authors WHERE author_code = ? AND author_name = ?';
+    var result = await conn.query(checkQuery, [book_author_code.text, book_author_name.text]);
+    if (result.isNotEmpty) {
+      bookAuthorId = result.first['author_id'];
+      print('Author already exists with ID: $bookAuthorId');
+    } else {
+      // If the author doesn't exist, insert the new author
+      String sqlQuery = 'INSERT INTO authors(author_code, author_name) VALUES (?,?)';
+      var insertResult = await conn.query(sqlQuery, [book_author_code.text, book_author_name.text]);
+      bookAuthorId = insertResult.insertId;
+      print('Added to table_book_author with ID: $bookAuthorId');
+    }
   }
 
-  Future<void> table_book_edition() async {
+
+
+
+
+  //book tittle table
+  Future<void> table_book_title() async {
     var conn = await db.getConnection();
     Uint8List? imageBytes;
 
     if (_image != null) {
       imageBytes = await _image!.readAsBytes();
     }
-    String sqlQuery = 'INSERT INTO eddition_table(Book_Eddition, ISBN, Book_Publishing_year, BOOK_eddition_image, Book_Publishing_place, Book_author_id, Book_title_id) VALUES (?,?,?,?,?,?,?)';
-    var result = await conn.query(sqlQuery, [book_edition.text, book_isbn.text, book_publishing_year.text, imageBytes, book_publishing_place.text, bookAuthorId, bookTitleId]);
-    bookedditionid = result.insertId;
-    setState(() {});
-    print('Added to table_book_edition with ID: $bookedditionid');
+    String sqlQuery = 'INSERT INTO books(title,edition,isbn,publish_year,publish_place,image,shelf,classification_number,classification_name,category,volume,quantity,pages,source,price,binding,author_id,description) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
+    var result = await conn.query(sqlQuery, [book_title.text,book_edition.text,book_isbn.text,book_publishing_year.text,book_publishing_place.text,imageBytes,book_shelf.text,classification_number.text,classification_name.text,1,book_volume.text,0,book_page.text, book_source.text, book_price.text, book_binding.text,bookAuthorId,book_description.text]);
+    bookTitleId = result.insertId; // Get the inserted ID
+    print("Added to table_book_title with ID: $bookTitleId");
   }
 
 
 
 
 
-  Future<void> table_book_volume() async {
-    var conn = await db.getConnection();
-    String sqlQuery = 'INSERT INTO book_volume(Volume, Quantity, Eddition_id) VALUES (?,?,?)';
-    var result = await conn.query(sqlQuery, [book_volume.text, book_quantity.text, bookedditionid]);
-    bookvolumeid = result.insertId;
-    setState(() {});
-    print('Added to table_book_volume with ID: $bookvolumeid');
-  }
-
-  Future<void> table_book_page() async {
-    var conn = await db.getConnection();
-    String sqlQuery = 'INSERT INTO book_page_detail(Book_page, Book_source, Book_price, Book_binding, Book_Volume_id) VALUES (?,?,?,?,?)';
-    var result = await conn.query(sqlQuery, [book_page.text, book_source.text, book_price.text, book_binding.text, bookvolumeid]);
-    book_pageid = result.insertId;
-    setState(() {});
-    print('Added to table_book_page with ID: $book_pageid');
-  }
-
-  Future<void> table_book_shelf() async {
-    var conn = await db.getConnection();
-    String sqlQuery = 'INSERT INTO book_shelf(Book_Shelf_Number, Book_Classification_id) VALUES (?,?)';
-    var result = await conn.query(sqlQuery, [book_shelf.text, classificationId]);
-    bookshelfid = result.insertId;
-    setState(() {});
-    print('Added to table_book_shelf with ID: $bookshelfid');
-  }
-
+  // association table   is ka mtlb he agr book tittle id select hui hogi to association k table pr jaye gi
   Future<void> table_book_association() async {
     var conn = await db.getConnection();
-    String sqlQuery = 'INSERT INTO book_association_table(Book_Association_id, Book_title_id, Book_Shelf_id, Eddition_id, Book_author_id, Book_Classification_id) VALUES (?,?,?,?,?,?)';
-    var result = await conn.query(sqlQuery, [book_association_id.text, bookTitleId, bookshelfid, bookedditionid, bookAuthorId, classificationId]);
-    book_associationid = result.insertId;
-    setState(() {});
-    print('Added to table_book_association with ID: $book_associationid');
+
+    // Check if the book_id exists in the books table
+    var bookExistsQuery = 'SELECT COUNT(*) FROM books WHERE book_id = ?';
+    var result = await conn.query(bookExistsQuery, [bookTitleId]);
+
+    int count = result.first[0];
+
+    if (count > 0) {
+      // Check if the copy number already exists for the given book_id
+      var duplicateCheckQuery = 'SELECT COUNT(*) FROM associations WHERE book_id = ? AND copy_number = ?';
+      var duplicateResult = await conn.query(duplicateCheckQuery, [bookTitleId, associationController.text]);
+
+      int duplicateCount = duplicateResult.first[0];
+
+      if (duplicateCount > 0) {
+        // Alert the user about the duplicate copy number
+        print('Error: Duplicate copy number detected for this book.');
+        // You can show an alert dialog here if you want
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Duplicate Association id')),
+        );
+      } else {
+        // If no duplicate, insert into the associations table
+        String sqlQuery = 'INSERT INTO associations(book_id, copy_number) VALUES (?,?)';
+        var insertResult = await conn.query(sqlQuery, [bookTitleId, associationController.text]);
+
+        book_associationid = insertResult.insertId;
+        setState(() {});
+
+        await updateBookQuantity();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('book is successfully added')),
+        );
+        print('Added to table_book_association with ID: $book_associationid');
+      }
+    } else {
+      // If the book doesn't exist, handle the error or insert into books first
+      print('Error: book_id does not exist in the books table.');
+      // Optionally, you could add code here to insert the book into the books table
+    }
   }
+
+
+  Future<void> updateBookQuantity() async {
+    try {
+      // Fetch the current quantity of the book
+      var conn = await db.getConnection();
+      var result = await conn.query(
+        'SELECT quantity FROM books WHERE book_id = ?',
+        [bookTitleId],
+      );
+
+      if (result.isEmpty) {
+        throw Exception('Book with ID $bookTitleId not found.');
+      }
+
+      // Get the current quantity
+      var currentQuantity = result.first['quantity'] as int;
+
+      // Calculate the new quantity
+      int newQuantity = currentQuantity + 1;
+
+      // Update the quantity in the database
+      await conn.query(
+        'UPDATE books SET quantity = ? WHERE book_id = ?',
+        [newQuantity, bookTitleId],
+      );
+      print('Book quantity updated successfully.');
+    } catch (e) {
+      print('Error updating book quantity: $e');
+    }
+  }
+
+
+  Future<void> showAssociationDialog() async {
+    while (true) {
+
+
+      bool shouldContinue = await showDialog(
+        context: context,
+        barrierDismissible: false, // Prevent dismissing by tapping outside
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Enter Association ID"),
+            content: TextField(
+              controller: associationController,
+              decoration: InputDecoration(
+                labelText: 'Association ID',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  if (associationController.text.isNotEmpty) {
+                    // Save the association ID to the database
+
+                  await table_book_association();
+
+                    Navigator.of(context).pop(true);
+                  associationController.clear();
+                    // Continue asking for more IDs
+                  } else {
+                    showAlert("Please enter an Association ID.");
+                  }
+                },
+                child: Text("Save and Add Another"),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false); // Exit the loop
+                },
+                child: Text("Exit"),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (!shouldContinue) break; // Break the loop if the user clicks "Exit"
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  //
+  // Future<void> fetchBookDetails() async {
+  //   if (book_association_id.text.isEmpty ||
+  //       !RegExp(r'^\d+$').hasMatch(book_association_id.text)) {
+  //     showAlert("Please enter a valid numeric Book Association ID.");
+  //     return;
+  //   }
+  //
+  //   try {
+  //     var conn = await db.getConnection();
+  //
+  //     // Step 1: Retrieve the book_id from the table_book_association
+  //     String associationQuery = '''
+  //   SELECT book_id
+  //   FROM associations
+  //   WHERE association_id = ?
+  //   ''';
+  //
+  //     var associationResults = await conn.query(associationQuery, [int.parse(book_association_id.text)]);
+  //
+  //     if (associationResults.isNotEmpty) {
+  //       var associationRow = associationResults.first;
+  //       int bookId = associationRow['book_id'];
+  //
+  //       // Step 2: Retrieve the book details using the book_id
+  //       String bookQuery = '''
+  //     SELECT b.classification_name, b.classification_number,
+  //            b.title, a.author_code, a.author_name,
+  //            b.edition, b.isbn, b.publish_year,
+  //            b.publish_place, b.volume,
+  //            b.description, b.pages,
+  //            b.source, b.price, b.binding, b.shelf
+  //     FROM associations AS ba
+  //     JOIN books AS b ON ba.book_id = b.book_id
+  //     JOIN authors AS a ON b.author_id = a.author_id
+  //     WHERE ba.book_id = ?
+  //     ''';
+  //
+  //       var bookResults = await conn.query(bookQuery, [bookId]);
+  //
+  //       if (bookResults.isNotEmpty) {
+  //         var row = bookResults.first;
+  //
+  //         classification_name.text = row['classification_name'].toString();
+  //         classification_number.text = row['classification_number'].toString();
+  //         book_title.text = row['title'].toString();
+  //         book_author_code.text = row['author_code'].toString();
+  //         book_author_name.text = row['author_name'].toString();
+  //         book_edition.text = row['edition'].toString();
+  //         book_isbn.text = row['isbn'].toString();
+  //         book_publishing_year.text = row['publish_year'].toString();
+  //         book_publishing_place.text = row['publish_place'].toString();
+  //         book_volume.text = row['volume'].toString();
+  //         book_description.text = row['description'].toString();
+  //         book_page.text = row['pages'].toString();
+  //         book_source.text = row['source'].toString();
+  //         book_price.text = row['price'].toString();
+  //         book_binding.text = row['binding'].toString();
+  //         book_shelf.text = row['shelf'].toString();
+  //
+  //         // Inform the user that the book details have been fetched
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(content: Text('Book details fetched successfully')),
+  //         );
+  //       } else {
+  //         showAlert("No book details found with the provided Association ID.");
+  //       }
+  //     } else {
+  //       showAlert("No association found with the provided Association ID.");
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching book details: $e');
+  //     showAlert("An error occurred while fetching book details.");
+  //   }
+  // }
+  //
+
+
+//bc.Book_Classification_Name, bc.Book_Classification_Number,
+  //        bt.book_title, ba.Book_author_code, ba.Book_author_name,
+  //        et.Book_Eddition, et.ISBN, et.Book_Publishing_year, et.BOOK_eddition_image, et.Book_Publishing_place,
+  //        bv.Volume, bv.Quantity,
+  //        bpd.Book_page, bpd.Book_source, bpd.Book_price, bpd.Book_binding,
+
+
+
+
+
 
   Future<void> fetchBookDetails() async {
     if (book_association_id.text.isEmpty || !RegExp(r'^\d+$').hasMatch(book_association_id.text)) {
@@ -154,49 +360,53 @@ class _AddBookState extends State<AddBook> {
       var conn = await db.getConnection();
 
       String sqlQuery = '''
-    SELECT bc.Book_Classification_Name, bc.Book_Classification_Number,
-           bt.book_title, ba.Book_author_code, ba.Book_author_name,
-           et.Book_Eddition, et.ISBN, et.Book_Publishing_year, et.BOOK_eddition_image, et.Book_Publishing_place,
-           bv.Volume, bv.Quantity,
-           bpd.Book_page, bpd.Book_source, bpd.Book_price, bpd.Book_binding,
-           bs.Book_Shelf_Number
-    FROM book_association_table bat
-    JOIN book_classification bc ON bat.Book_Classification_id = bc.Book_Classification_id
-    JOIN book_title bt ON bat.Book_title_id = bt.Book_title_id
-    JOIN book_author ba ON bat.Book_author_id = ba.Book_author_id
-    JOIN eddition_table et ON bat.Eddition_id = et.Eddition_id
-    JOIN book_volume bv ON et.Eddition_id = bv.Eddition_id
-    JOIN book_page_detail bpd ON bv.Book_Volume_id = bpd.Book_Volume_id
-    JOIN book_shelf bs ON bat.Book_Shelf_id = bs.Book_Shelf_id
-    WHERE bat.Book_Association_id = ?
-  ''';
+    SELECT b.classification_name, b.classification_number,
+          b.title, a.author_code, a.author_name,
+          b.edition, b.isbn, b.publish_year,
+          b.publish_place, b.volume,
+          b.description, b.pages,
+          b.source, b.price, b.binding, b.shelf,
+          b.image
+    FROM associations AS ba
+    JOIN books AS b ON ba.book_id = b.book_id
+    JOIN authors AS a ON b.author_id = a.author_id
+    WHERE ba.copy_number = ?
+    ''';
 
       var results = await conn.query(sqlQuery, [int.parse(book_association_id.text)]);
 
       if (results.isNotEmpty) {
         var row = results.first;
 
-        classification_name.text = row['Book_Classification_Name'].toString();
-        classification_number.text = row['Book_Classification_Number'].toString();
-        book_title.text = row['book_title'].toString();
-        book_author_code.text = row['Book_author_code'].toString();
-        book_author_name.text = row['Book_author_name'].toString();
-        book_edition.text = row['Book_Eddition'].toString();
-        book_isbn.text = row['ISBN'].toString();
-        book_publishing_year.text = row['Book_Publishing_year'].toString();
-        book_publishing_place.text = row['Book_Publishing_place'].toString();
-        book_volume.text = row['Volume'].toString();
-        book_quantity.text = row['Quantity'].toString();
-        book_page.text = row['Book_page'].toString();
-        book_source.text = row['Book_source'].toString();
-        book_price.text = row['Book_price'].toString();
-        book_binding.text = row['Book_binding'].toString();
-        book_shelf.text = row['Book_Shelf_Number'].toString();
+        book_description.text = row['description'].toString();
+        classification_name.text = row['classification_name'].toString();
+        classification_number.text = row['classification_number'].toString();
+        book_title.text = row['title'].toString();
+        book_author_code.text = row['author_code'].toString();
+        book_author_name.text = row['author_name'].toString();
+        book_edition.text = row['edition'].toString();
+        book_isbn.text = row['isbn'].toString();
+        book_publishing_year.text = row['publish_year'].toString();
+        book_publishing_place.text = row['publish_place'].toString();
+        book_volume.text = row['volume'].toString();
+        book_page.text = row['pages'].toString();
+        book_source.text = row['source'].toString();
+        book_price.text = row['price'].toString();
+        book_binding.text = row['binding'].toString();
+        book_shelf.text = row['shelf'].toString();
+
+        // Fetch and convert the image
+        if (row['image'] != null) {
+          Blob blob = results.first['image'];
+          List<int> imageBytes =blob.toBytes();
+         // List<int> imageBytes = row['image'];
 
 
-
-
-
+          _image = File.fromRawPath(Uint8List.fromList(imageBytes));
+        } else {
+          print('No image found for this book.');
+          _image = null;
+        }
 
         setState(() {});
       } else {
@@ -206,7 +416,6 @@ class _AddBookState extends State<AddBook> {
       showAlert("An error occurred: $e");
     }
   }
-
 
 
   void showAlert(String message) {
@@ -241,7 +450,7 @@ class _AddBookState extends State<AddBook> {
     book_image.clear();
     book_publishing_place.clear();
     book_volume.clear();
-    book_quantity.clear();
+    book_description.clear();
     book_page.clear();
     book_source.clear();
     book_price.clear();
@@ -250,7 +459,6 @@ class _AddBookState extends State<AddBook> {
     book_association_id.clear();
     _clearImage();
   }
-
   Future<void> addBook() async {
     if (classification_name.text.isEmpty ||
         classification_number.text.isEmpty ||
@@ -260,36 +468,93 @@ class _AddBookState extends State<AddBook> {
         book_edition.text.isEmpty ||
         book_isbn.text.isEmpty ||
         book_publishing_year.text.isEmpty ||
-
         book_publishing_place.text.isEmpty ||
         book_volume.text.isEmpty ||
-        book_quantity.text.isEmpty ||
+        book_description.text.isEmpty ||
         book_page.text.isEmpty ||
         book_source.text.isEmpty ||
         book_price.text.isEmpty ||
         book_binding.text.isEmpty ||
-        book_shelf.text.isEmpty ||
-        book_association_id.text.isEmpty) {
+        book_shelf.text.isEmpty) {
       showAlert("Please fill in all required fields.");
       return;
     }
 
     try {
-      await table_classification();
-      await table_book_title();
-      await table_book_author();
-      await table_book_edition();
-      await table_book_volume();
-      await table_book_page();
-      await table_book_shelf();
-      await table_book_association();
+      var conn = await db.getConnection();
+
+      // Check if all the required fields are present in the same row
+      var results = await conn.query(
+          '''
+      SELECT book_id 
+      FROM books 
+      WHERE title = ? 
+      AND edition = ? 
+      AND isbn = ? 
+      AND publish_year = ? 
+      AND publish_place = ? 
+      AND classification_number = ? 
+      AND classification_name = ?
+      AND volume =?
+      AND pages =?
+      AND source =?
+      AND price =?
+      AND binding =?
+      AND description =?
+      ''',
+          [
+            book_title.text,
+            book_edition.text,
+            book_isbn.text,
+            book_publishing_year.text,
+            book_publishing_place.text,
+            classification_number.text,
+            classification_name.text,
+            book_volume.text,
+            book_page.text,
+            book_source.text,
+            book_price.text,
+            book_binding.text,
+            book_description.text
+
+
+
+
+          ]
+      );
+
+      if (results.isNotEmpty) {
+        // Existing book found, fetch the book ID
+        bookTitleId = results.first['book_id'];
+        print('Book already exists with ID: $bookTitleId');
+
+        // Show the association dialog
+        await showAssociationDialog();
+      }
+
+
+      else {
+        // Book does not exist, add it to the database
+        await table_book_author();
+        await table_book_title();
+
+        // `bookTitleId` should now be set by `table_book_title`
+        if (bookTitleId == null || bookTitleId == 0) {
+          throw Exception('Failed to retrieve the inserted book ID.');
+        }
+
+        print('Added new book with ID: $bookTitleId');
+
+        // Show the association dialog
+        await showAssociationDialog();
+      }
 
       showAlert("Data saved successfully.");
-      clearFields();
     } catch (e) {
       showAlert("An error occurred while saving data: $e");
     }
   }
+
 
   @override
   void dispose() {
@@ -304,7 +569,7 @@ class _AddBookState extends State<AddBook> {
     book_image.dispose();
     book_publishing_place.dispose();
     book_volume.dispose();
-    book_quantity.dispose();
+    book_description.dispose();
     book_page.dispose();
     book_source.dispose();
     book_price.dispose();
@@ -438,9 +703,9 @@ class _AddBookState extends State<AddBook> {
                     ),
                     const SizedBox(height: 20),
                     TextField(
-                      controller: book_quantity,
+                      controller: book_description,
                       decoration: InputDecoration(
-                        labelText: 'Quantity',
+                        labelText: 'Book Description',
                         border: OutlineInputBorder(),
                       ),
                     ),
@@ -533,7 +798,7 @@ class _AddBookState extends State<AddBook> {
                     TextField(
                       controller: book_association_id,
                       decoration: InputDecoration(
-                         labelText: 'Book Association ID',
+                         labelText: 'search book by id',
                         border: OutlineInputBorder(),
                       ),
                     ),
@@ -551,7 +816,7 @@ class _AddBookState extends State<AddBook> {
                         Colors.deepPurple.shade900, // background color
                         foregroundColor: Colors.white, // text color
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 30, vertical: 15),
+                            horizontal: 60, vertical: 15),
                         textStyle: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -561,9 +826,12 @@ class _AddBookState extends State<AddBook> {
                     ),
                     ElevatedButton(
 
-                      onPressed: () async {
+                      onPressed: () async
+                      {
+
                         await fetchBookDetails();
-                      },style: ElevatedButton.styleFrom(
+                      },
+  style: ElevatedButton.styleFrom(
 
                         backgroundColor:
                         Colors.deepPurple.shade900, // background color
